@@ -1,0 +1,83 @@
+# AUTHOR  : ARUN S
+# CREATED : 07-26-2019
+# COMMENT : This code is used to find duplicate records in a table 
+# VERSION : 1.0
+# CHANGE LOG:      
+#04/12/2018: Version 1.0
+#Configuration file details:    E:\Reusable_Components\ConfigFile\Duplicaterecords_412988\ReusableScript_Dashboard.xlsm  
+#>
+try{
+$FilePath           =    "E:\Reusable_Components\ConfigFile\Duplicaterecords_412988\ReusableScript_Dashboard.xlsm"
+$SheetName          =    "Duplicate"
+$objExcel           =    New-Object -ComObject Excel.Application
+$objExcel.Visible   =    $false
+$WorkBook           =    $objExcel.Workbooks.Open($FilePath)
+$WorkSheet          =    $WorkBook.sheets.item($SheetName)
+$servername=$WorkSheet.Range("B10").Text
+$DatabaseName=$WorkSheet.Range("B11").Text
+$tablename=$WorkSheet.Range("B12").Text
+$columnname=$WorkSheet.Range("B13").Text
+$CC=$WorkSheet.Range("B18").Text
+$BCC=$WorkSheet.Range("B19").Text
+$Subj=$WorkSheet.Range("B20").Text
+$mailbody=$WorkSheet.Range("B21").Text
+$from=$WorkSheet.Range("B22").Text
+$to=$WorkSheet.Range("B17").Text
+$attachment=$WorkSheet.Range("B14").Text
+$SMTPServer=$WorkSheet.Range("B15").Text
+$LogPath=$WorkSheet.Range("B23").Text
+$credential=Get-Credential
+$credential.Password.MakeReadOnly()
+$sqlCred = New-Object System.Data.SqlClient.SqlCredential($credential.username,$credential.password)
+$sqlConnection = New-Object System.Data.SqlClient.SqlConnection 
+$sqlConnection.ConnectionString="Server=$ServerName;Integrated Security=False;Database=$DatabaseName"
+$sqlConnection.Credential=$sqlCred
+$sqlConnection.Open()
+$sqlcmd=New-Object System.Data.SqlClient.SqlCommand
+$query="execute duplicaterecords @table_name='"+$tablename+"',@column_name='"+$columnname+"'"
+$sqlcmd.CommandText=$query
+$sqlcmd.Connection=$sqlConnection 
+$adapter=New-Object System.Data.SqlClient.SqlDataAdapter $sqlcmd
+$data = New-Object System.Data.DataSet
+$adapter.Fill($data) | Out-Null
+$data.Tables | Out-File $attachment
+$sqlConnection.Close()
+#Send mail with attachment to the stake holders
+
+$message = new-object System.Net.Mail.MailMessage 
+$message=@{
+From = $from
+To=$to 
+CC=$CC
+BCC=$BCC
+Subject =$Subj.Trim()
+body = $mailbody
+smtpserver =$SMTPServer
+Attachments=$attachment
+}
+Send-MailMessage @message
+}
+catch
+{
+    $line = $_.InvocationInfo.ScriptLineNumber
+    $LogValue = "[Error] Caught an exception:`n"+"Exception Type: $($_.Exception.GetType().FullName)`n"+"Exception Message: $($_.Exception.Message)`n" + "at line:$line"
+    $TimeValue = Get-Date -format HH:MM
+    Add-Content -Path $LogPath -Value "[$TimeValue]:$LogValue"
+  $message=@{
+From = $from
+To=$to 
+CC=$CC
+BCC=$BCC
+Subject =$Subj.Trim()
+body = "Hi,
+
+Error occured during script execution, please find the details below
+
+"+$LogValue+"
+
+Thanks,
+Automation team."
+smtpserver =$SMTPServer
+} 
+Send-MailMessage @message
+} 
