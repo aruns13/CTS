@@ -1,0 +1,16 @@
+## License.bat
+## cd c:\Program^ Files\Microsoft^ Office\Office16\
+## cscript^ OSPP.VBS^ /dstatus
+## Below script checks if the MS office license is active
+
+$output= C:\Users\412988\Documents\Pending` state\License.bat
+$License=$output.split([Environment]::NewLine)[13]
+$License=$License.Split('---')[3]
+$License
+$Validity=$output.split([Environment]::NewLine)[14]
+$Validity=$Validity.Split(':')[1]
+$Validity
+if ($License -ne "LICENSED")
+{
+    Write-Host 'MS Office License is expired'
+}
