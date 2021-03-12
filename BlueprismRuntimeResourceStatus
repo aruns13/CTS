@@ -1,0 +1,19 @@
+## This script checks if the Blueprism Runtime Resource is busy executing the process
+
+$smtpServer = "cos.smtp.agilent.com"
+$From = "spac.one@agilent.com"
+$To = "arun.sivanandam@non.agilent.com"
+$messageSubject = "Runtime Resource available"
+$message = New-Object System.Net.Mail.MailMessage $From, $To
+$message.Subject = $messageSubject
+$message.IsBodyHTML = $true
+$message.Body="<!DOCTYPE html><body>
+<p>Hi Team,<br/><br/>The Resource is available now to run the process.<br/><br/>Thanks.
+</p>
+</body>"
+$status=Invoke-WebRequest -Uri http://localhost:8181/busy
+if($status.Content.Trim() -eq 'no')
+{
+$smtp = New-Object Net.Mail.SmtpClient($smtpServer)
+$smtp.Send($message)
+}
