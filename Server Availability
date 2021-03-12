@@ -1,0 +1,39 @@
+## This script is used to check if Blueprism Windows server is up
+## If the server is up , it checks if the server is logged in by BOT ID
+## If server is down or if server is logged in using another Email ID, an email alert will be sent
+
+$smtpServer = "cos.smtp.agilent.com"
+$From = "spac.one@agilent.com"
+$To = "arun.sivanandam@non.agilent.com"
+$messageSubject = "Runtime Resource available"
+$message = New-Object System.Net.Mail.MailMessage $From, $To
+$message.Subject = $messageSubject
+$message.IsBodyHTML = $true
+$message.Body="<!DOCTYPE html><body>
+<p>Hi Team,<br/><br/>The Resource $Server is down.<br/><br/>Thanks.
+</p>
+</body>"
+$ServerExcel = New-Object -comobject Excel.Application
+$Workbook = $ServerExcel.workbooks.open("C:\Users\412988\Documents\Pending state\Test.xlsx")
+$Sheet = $Workbook.Worksheets.Item("Sheet1")
+$row= [int]2
+$ServerName= @()
+Do 
+{
+$ServerName+= $Sheet.Cells.Item($row,1).Text ; 
+$row = $row + [int]1
+}until (!$Sheet.Cells.Item($row,1).Text)
+$Workbook.Close()
+$ServerExcel.Quit()   
+foreach ($Server in $ServerName) 
+{  
+if (test-Connection -ComputerName $Server -Count 2 -Quiet ) 
+{         
+   $Loginuser=quser rpadev_002 /server:wtcosaprts2           
+}
+else                    
+{
+   $smtp = New-Object Net.Mail.SmtpClient($smtpServer)
+   $smtp.Send($message)        
+}              
+} 
