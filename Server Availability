@@ -2,8 +2,8 @@
 ## If the server is up , it checks if the server is logged in by BOT ID
 ## If server is down or if server is logged in using another Email ID, an email alert will be sent
 
-$smtpServer = "cos.smtp.agilent.com"
-$From = "spac.one@agilent.com"
+$smtpServer = "***.com"
+$From = "**.com"
 $To = "arun.sivanandam@non.agilent.com"
 $messageSubject = "Runtime Resource available"
 $message = New-Object System.Net.Mail.MailMessage $From, $To
@@ -29,7 +29,7 @@ foreach ($Server in $ServerName)
 {  
 if (test-Connection -ComputerName $Server -Count 2 -Quiet ) 
 {         
-   $Loginuser=quser rpadev_002 /server:wtcosaprts2           
+   $Loginuser=quser $user /server:$Server           
 }
 else                    
 {
