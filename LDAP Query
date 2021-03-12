@@ -1,0 +1,30 @@
+## AUTHOR  : ARUN S
+## COMMENT : This script is used to read Manager ID of an employee by querying into LDAP server
+## Import AD module using below cmdlet
+## Import-Module ServerManager
+## Add-WindowsFeature RSAT-AD-PowerShell
+
+param ([string]$user)
+try{
+#Filter the Manager properties of the user
+$manager=Get-ADUser $user -Properties * |select Manager 
+
+#filter the NTID of the Manager
+$ID=$manager -split "CN=" 
+$ID=$ID[1] -replace ",", ""
+
+#Read the mail properties of Manager using NTID
+$Manager_Email=Get-ADUser $ID -Properties * |select mail 
+
+#Remove the special characters and filter the Email Address
+$Manager_Email=$Manager_Email -split "----"
+$Manager_Email=$Manager_Email -split "="
+$Manager_Email=$Manager_Email[1]
+$Manager_Email=$Manager_Email -replace "}",""
+$Manager_Email
+}
+catch
+{
+$_.exception.message
+}
+
